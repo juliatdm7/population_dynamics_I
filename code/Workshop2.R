@@ -352,3 +352,26 @@ ggplot(data = out.df)+
   geom_abline(intercept = 100, slope = 0, col = "red") +
   labs(x = "Time", y = "P")
 #what we see is that the population reaches the equilibrium much faster, but without showing the chaotic behaviour that we saw in the discrete model
+
+
+#Model calibration
+
+#We could use our model to figure out the K and r parameters out of real data from a population. This is called model calibration.
+#Let's try and do this, but using generated data for which we actually know the values of r and K.
+#More specifically, this is how the data was generated:
+tmax <- 300
+x <- numeric(tmax+1)
+for(i in 2:(tmax+1)){
+  x[i] <- r*x[i-1]*(1-x[i-1]/K)+x[i-1]+rnorm(1,0,x[i-1]/100)
+}
+#We're adding random values from a Normal distribution?
+
+#Let's load our data
+data1 <- read.csv("data/pop_LG_simul_noise_small.csv")
+View(data1)
+
+#Let's use this data to define the parameters of our differential equation
+state <- data1[1,2] #This will be our initial state
+
+plot(data1, type = "l")
+K <- mean(data1[250,2]:data1[301,2]) 

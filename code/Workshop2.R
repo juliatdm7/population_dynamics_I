@@ -1,5 +1,8 @@
 #Workshop 2 (Biodiversity under Pressure) - 26/09/2024
 
+
+#1. Important concepts for programming in R
+
 my.function <- function(x=0,y=0){
   z <- x*y
   return(z)
@@ -94,4 +97,182 @@ smn_cars <- sapply(dt, min)
 dt
 lmn_cars
 smn_cars
+
+
+#2. Introduction to modelling with R
+
+#Now, we'll make our first simple population models. 
+#We will use a density-dependent logistic growth, using discrete and continuous models.
+
+#Firstly, we will run some lines of code to understand the logic behind
+
+P <- numeric(length = 500)  #first, we create a vector of size 500 using numeric()
+
+P[1] <- 10 #here, we change the first value of the vector to be 10 (our population size at t)
+
+r <- 0.1 #we set the growth rate of our population at 0.1...
+
+K <- 100 #...and its carrying capacity at 100
+
+#Now, we'll try to predict population size at t=2, at t=3 and at t=4 using the discrete logistic growth equation:
+
+P[2] <- r*(1-(P[1]/K))*P[1]+P[1]
+
+P[3] <- r*(1-(P[2]/K))*P[2]+P[2]
+
+P[4] <- r*(1-(P[3]/K))*P[3]+P[3]
+
+#Instead of doing this until we fill our vector, we use for loops.
+
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+  
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", main = "Population size at time t")
+
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", log = "y", main = "Log of population size at time t")
+
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", main = "Population size at time t", type = "l")
+
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", log = "y", main = "Log of population size at time t", type = "l")
+
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", main = "Population size at time t")
+lines(P, type = "l", col = "red")
+legend <- c("Discrete points", "Continuous line")
+legend("bottomright", legend, col = c("black", "red"), lty =c(6,1)) #this legend is not right, but I wanted to practice code
+
+#Let's try plotting P(t+1) vs P(t):
+
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", main = "P(t+1) vs. P(t)") #here we can see how data points are more are more frequent as they close in to the carrying capacity (K=100)
+
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", main = "P(t+1) vs. P(t)", type = "l") #here, however, since we plot it as a continuous line, we don't really appreciate that.
+
+#Now, let's try to plot a curve showing the whole possible set of [P(t),P(t+1)] combinations. 
+#We cannot exactly show the whole possible set of [P(t),P(t+1)] combinations, but we can compute a large number of these combinations and plot the output.
+
+Pt <- seq(0,150,0.1) #that creates a vector from 0 to 150 with an increment of 0.1
+Ptt <- r*(1-Pt/K)*Pt+Pt #that applies the discrete logistic growth equation to all positions of the vector Pt and stores the values in the object "Ptt"
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+#Now, let's change the values of P(0):
+
+#P(0)=20, r=0.5, K=100 
+P[1] <- 20
+r <- 0.5
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", main = "P(t+1) vs. P(t) when P(0)=20, r=0.5 and K=100") 
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+
+#P(0)=10, r=1, K=100 
+P[1] <- 10
+r <- 1
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", xlim = c(0,100), type = "l", ylim = c(0,100), main = "P(t+1) vs. P(t) when P(0)=10, r=1 and K=100") 
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+
+#P(0)=10, r=1.3, K=100 
+P[1] <- 10
+r <- 1.3
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", main = "Population size at time t when P(0)=10, r=1.3 and K = 100")
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", xlim = c(0,100), type = "l", ylim = c(0,100), main = "P(t+1) vs. P(t) when P(0)=10, r=1.3 and K=100") 
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+
+#P(0)=10, r=1.7, K=100 
+P[1] <- 10
+r <- 1.7
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", xlim = c(0,300), main = "Population size at time t when P(0)=10, r=1.7 and K = 100")
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", xlim = c(0,100), type = "l", ylim = c(0,100), main = "P(t+1) vs. P(t) when P(0)=10, r=1.7 and K=100") 
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+
+#P(0)=10, r=2, K=100 
+P[1] <- 10
+r <- 2
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", xlim = c(0,200), main = "Population size at time t when P(0)=10, r=2 and K = 100") #between r=1.7 and r=2, population size starts to oscilate in cicles. The population overshoots
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", type = "l", main = "P(t+1) vs. P(t) when P(0)=10, r=2 and K=100")  
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+
+#P(0)=10, r=2.5, K=100 
+P[1] <- 10
+r <- 2.5
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", xlim = c(0,200), main = "Population size at time t when P(0)=10, r=2.5 and K = 100") #when r=2.5, we can see double cycles, but still no chaotic behaviour
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", type = "l", main = "P(t+1) vs. P(t) when P(0)=10, r=2.5 and K=100")  
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # population goes below equilibrium
+
+
+#P(0)=10, r=3, K=100 
+P[1] <- 10
+r <- 3
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", xlim = c(0,200), main = "Population size at time t when P(0)=10, r=3 and K = 100") #now we start seeing chaotic behaviour.
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", type = "l", main = "P(t+1) vs. P(t) when P(0)=10, r=3 and K=100")  
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+#A different way to plot P(t+1) vs. P(t):
+plot(c(P[1],rep(P[2:99],each=2)), y = c(rep(P[2:99],each=2),P[100]), main = "P(t+1) vs. P(t) (P(t)=10, r=3, K=200", type = "l")
+lines(Pt, Ptt, col = "blue")
+lines(c(1,300), c(1,300), col = "red") 
+
+#what happens if our population size starts over K?
+P[1] <- 130
+r <- 3
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", xlim = c(0,200), main = "Population size at time t when P(0)=130, r=3 and K = 100") #we still see chaotic behaviour.
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", type = "l", main = "P(t+1) vs. P(t) when P(0)=130, r=3 and K=100")  
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") # that draws the diagonal, as we saw in the lecture, to show the equilibrium
+
+
+#P(0)=130, r=1.5, K=100
+P[1] <- 130
+r <- 1.5
+K <- 100
+for (t in 2:500) {
+  P[t] <- r*(1-(P[t-1]/K))*P[t-1]+P[t-1]
+}
+plot(P, xlab = "Time (t)", ylab = "Population size (P)", type = "l", xlim = c(0,200), main = "Population size at time t when P(0)=130, r=1.5 and K = 100") 
+plot(P[1:499], P[2:500], xlab = "P(t)", ylab = "P(t+1)", type = "l", main = "P(t+1) vs. P(t) when P(0)=130, r=1.5 and K=100")  
+lines(Pt, Ptt, col = "blue", xlim = c(1,150))
+lines(c(1,150), c(1,150), col = "red") 
+
 

@@ -276,3 +276,79 @@ lines(Pt, Ptt, col = "blue", xlim = c(1,150))
 lines(c(1,150), c(1,150), col = "red") 
 
 
+#Let's move on to the Continuous Logistic Growth Model now.
+
+#In order to work with the continuous model, we're gonna need to download several packages:
+
+install.packages("deSolve") #deSolve is a package that contains the function ode() for solving the differential equation
+install.packages("tidyverse") #tidyverse contains some useful functions to manipulate data.
+install.packages("ggplot2") #ggplot2 makes beautiful graphs
+
+library(deSolve)
+library(tidyverse)
+library(ggplot2)
+
+#Conflict problems
+install.packages("devtools")
+devtools::install_github("r-lib/conflicted")
+
+library(conflicted)
+library(dplyr)
+
+#Moving on
+
+#To use the ode() function in deSolve we need to define four parameters: y, times, func and parms.
+##y: the initial (state) values for the ODE system, a vector. If y has a name attribute, the names will be used to label the output matrix.
+##The initial (state) value for our specific ODE system is P(0), therefore we define:
+  state <- c(P=10)
+##times: time sequence for which output is wanted; the first value of times must be the initial time.
+##As we did for the Discrete Logistic Growth model, let’s simulate 500 time steps, and get values for every 0.1 interval:
+  times <- seq(0,100,by=0.01) #but the vector is longer than 500...?
+##parms: parameters passed to func
+##In our case, these parameters are r and K:
+  parameters <- c(r=0.1, K=100)
+##func: either an R-function that computes the values of the derivatives in the ODE system (the model definition) at time t, or a character string giving the name of a compiled function in a dynamically loaded shared library.
+##func is a bit more complicated to define, but basically it is just an R function that implements the differential equation above:
+##LG will be our func:
+  LG <- function(t,state,parameters) { ##logistic grown function, that takes a set of parameter values, initial conditions and a time sequence
+    with(as.list(c(state, parameters)),{ ##"with" is a function that allows us to use the variable names directly - it looks for r, K and P in state and parameters
+      dP <- r*(1-P/K)*P ##this is our logistic equation governing the rate of change of P
+      return(list(dP)) ## return the rate of change - it needs to be a list
+    }) # end with(as.list ...
+  }
+
+#Now, we just need to input all parameters into ode():
+out <- ode(y = state, times = times, func = LG, parms = parameters) 
+
+#out is a deSolve object, which R can have trouble interpreting. We'll change it into a data frame:
+
+out.df <- as.data.frame(out)
+
+plot(out.df, type = "l")
+abline(h=100, col = "red")
+
+#We can also use ggplot2 to get a better result:
+ggplot(data = out.df)+
+  geom_line(mapping=aes(x=time,y=P),color="blue") +
+  geom_hline(yintercept=0,color="darkgrey") +
+  geom_vline(xintercept=0,color="darkgrey") +
+  geom_abline(intercept = 100, slope = 0, col = "red") +
+  labs(x = "Time", y = "P")
+
+#Let's change r to r=3, which is when we started seeing chaotic behaviour for the Discrete Logistic Growth Model:
+parameters <- c(r=3, K=100)
+LG <- function(t,state,parameters) { ##logistic grown function, that takes a set of parameter values, initial conditions and a time sequence
+  with(as.list(c(state, parameters)),{ ##"with" is a function that allows us to use the variable names directly - it looks for r, K and P in state and parameters
+    dP <- r*(1-P/K)*P ##this is our logistic equation governing the rate of change of P
+    return(list(dP)) ## return the rate of change - it needs to be a list
+  }) # end with(as.list ...
+}
+out <- ode(y = state, times = times, func = LG, parms = parameters) 
+out.df <- as.data.frame(out)
+ggplot(data = out.df)+
+  geom_line(mapping=aes(x=time,y=P),color="blue") +
+  geom_hline(yintercept=0,color="darkgrey") +
+  geom_vline(xintercept=0,color="darkgrey") +
+  geom_abline(intercept = 100, slope = 0, col = "red") +
+  labs(x = "Time", y = "P")
+#what we see is that the population reaches the equilibrium much faster, but without showing the chaotic behaviour that we saw in the discrete model
